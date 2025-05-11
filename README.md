@@ -53,7 +53,7 @@ This section provides a step-by-step guide on how to commit your changes to GitH
    
    If you haven't already, clone the repository to your local machine:
    ```bash
-   git clone https://github.com/yourusername/SDLC2.git
+   git clone https://github.com/yourusername/AI-Powered-SDLC.git
    cd SDLC2
    ```
 
