@@ -4,6 +4,7 @@ import plotly.express as px
 from datetime import datetime
 import sys
 import os
+from markdownify import markdownify
 
 # Add the project root to the path so we can import our modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -248,6 +249,34 @@ with tabs[0]:
 with tabs[1]:
     st.markdown("<h2 class='sub-header'>Project Documents</h2>", unsafe_allow_html=True)
     
+    # Add download button for architecture document
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        if st.button("Download Architecture Document"):
+            try:
+                # Import the document converter utility
+                from utils.document_converter import convert_html_file_to_markdown
+                
+                # Path to the architecture document
+                arch_doc_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
+                                           "Output", "Property Management System", "architecture_document.html")
+                
+                if os.path.exists(arch_doc_path):
+                    # Convert HTML to Markdown
+                    md_content = convert_html_file_to_markdown(arch_doc_path)
+                    
+                    # Create a download button with the converted content
+                    st.download_button(
+                        label="Download MD",
+                        data=md_content,
+                        file_name="architecture_document.md",
+                        mime="text/markdown"
+                    )
+                else:
+                    st.error("Architecture document not found.")
+            except Exception as e:
+                st.error(f"Error converting to Markdown: {str(e)}")
+    
     # Get documents for this project
     documents = db.get_documents(project_id)
     
@@ -256,13 +285,32 @@ with tabs[1]:
     else:
         for doc in documents:
             with st.expander(f"{doc['name']} ({doc['doc_type']})", expanded=False):
-                st.markdown(f"""<div class='card'>
-                    <p><strong>Type:</strong> {doc['doc_type']}</p>
-                    <p><strong>Created:</strong> {doc['created_at']}</p>
-                    <p><strong>Updated:</strong> {doc['updated_at']}</p>
-                    <hr>
-                    <p>{doc['content']}</p>
-                </div>""", unsafe_allow_html=True)
+                col1, col2 = st.columns([5, 1])
+                with col1:
+                    st.markdown(f"""<div class='card'>
+                        <p><strong>Type:</strong> {doc['doc_type']}</p>
+                        <p><strong>Created:</strong> {doc['created_at']}</p>
+                        <p><strong>Updated:</strong> {doc['updated_at']}</p>
+                        <hr>
+                        <p>{doc['content']}</p>
+                    </div>""", unsafe_allow_html=True)
+                with col2:
+                    if st.button("Download MD", key=f"download_md_{doc['id']}"):
+                        try:
+                            # Import the markdown conversion library
+                            from markdownify import markdownify
+                            # Convert HTML to Markdown
+                            md_content = markdownify(doc['content'])
+                            # Create a download button with the converted content
+                            st.download_button(
+                                label="Download",
+                                data=md_content,
+                                file_name=f"{doc['name'].replace(' ', '_')}.md",
+                                mime="text/markdown",
+                                key=f"download_button_{doc['id']}"
+                            )
+                        except Exception as e:
+                            st.error(f"Error converting to Markdown: {str(e)}")
     
     # Add document form
     with st.expander("Add New Document", expanded=False):
